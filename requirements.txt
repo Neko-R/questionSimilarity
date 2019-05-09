@@ -1,0 +1,8 @@
+pandas
+numpy
+nltk
+scikit-learn
+gensim
+fuzzywuzzy
+#python-Levenshtein
+#jupyter

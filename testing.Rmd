@@ -1,0 +1,72 @@
+---
+title: "Pyton-Questions"
+author: "Neko Reid"
+date: "May 8, 2019"
+output: html_document
+---
+
+```{r}
+library(data.table)
+answers <- fread('Answers.csv', header = T, sep = ',')
+questions <- fread('Questions.csv', header = T, sep = ',')
+tags <- fread('Tags.csv', header = T, sep = ',')
+
+targetTags <- fread('tag.csv', header = T, sep = ',', fill=TRUE)
+```
+
+```{r}
+answers2 <- answers
+questions2 <- questions
+tags2 <- tags
+```
+
+
+```{r}
+t <- c("binary-tree", "fold", "variable", "global-variables", "variable-assignment", "variable-declaration", "variable-variables", "variable-names", "local-variables", "getter", "getter-setter", "setter", "list", "list-comprehension", "nested-lists", "list-manipulation", "list-comparison", "arraylist", "sortedlist", "treelist", "listitem", "listiterator", "list-processing", "queue", "queueing", "push-queue", "pull-queue", "stack", "string", "string-formatting", "string-concatenation", "string-literals", "substring", "string-comparison", "substrings", "string-interpolation", "string-split", "format-string", "string-length", "string.format", "string-iteration", "integer", "integer-arithmetic", "int", "floating-point", "tuples", "indexing", "indexoutofboundsexception", "indexof", "indexoutofrangeexception", "predicate", "min", "max", "absolute-value", "pow", "built-in-types", "built-in", "loops", "for-loop", "while-loop", "nested-loops", "for-in-loops", "infinite-loops", "roundup", "data-structures", "higher-order-functions", "sorting", "sorted", "sum", "sum-of-digits", "mutators", "constructor", "boolean", "boolean-logic", "boolean-expression", "", "boolean-operations", "extend", "if-statement", "parameters", "optional-parameters", "lambda", "dictionary", "ordereddictionary", "sorteddictionary", "dictionary-comprehension", "append", "insert", "arguments", "indentation", "auto-indent", "recursion", "expression", "function", "map", "variable-assignment", "multiple-assignment", "elements", "element", "nth-element", "interable", "iteration", "iterator", "arrays", "array", "python")
+```
+
+
+```{r}
+# for (i in questions2$Id[1:length(questions2$Id)]) {
+#   bool <- T
+#   apply(tags2[tags2$Id == as.character(questions2$Id[i]), "Tag"], 1, function(k) ifelse(as.character(k) %in% t, bool <- (bool & T), bool <- (bool & F)))
+#   ifelse(bool,"ok",questions2[i,] <- NULL)
+# }
+
+
+tags2 <- aggregate(Tag~Id, tags, paste)
+
+#View(!(tags2$Id %in% questions2$Id)) row 606523contains an id not in questions$Id
+tags2 <- tags2[-c(606523),]
+row.names(tags2) <- NULL
+
+questions2$Tags <- tags2[tags2$Id == questions2$Id, "Tag"]
+
+questions2[, c("OwnerUserId", "Score")] <- NULL
+
+#sapply obtains the Tags feature to process each row -- unlist produces a vector from the list in each cell -- %in% part checks if the elements in the vector are in the predetermined tags desired (generates a vector of boolean, each boolean corresponding to respective element) -- all checks if all the booleans are true
+questions2 <- questions2[sapply(questions2$Tags, function(i) all(unlist(i) %in% t)),]
+
+questions2 <- questions2[questions2$Tags != "python",]
+```
+
+
+```{r}
+questions3 <- questions2
+summary(questions3[,1:4])
+```
+
+```{r}
+#questions3$
+library(stringr)
+questions3$Body <- str_replace_all(questions3$Body,"(<[a-zA-z0-9[:punct:]= ]*>)", " ")
+questions3$Body <- str_replace_all(questions3$Body,"(\"\"\"\")", " ")
+questions3$Body <- str_replace_all(questions3$Body,"(\"\")", "'")
+questions4 <- questions3
+```
+
+```{r}
+questions4$Tags <- vapply(questions3$Tags, paste, collapse = ", ", character(1L))
+write.csv(questions4, file="questionsData.csv", row.names = FALSE)
+```
+
