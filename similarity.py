@@ -22,9 +22,10 @@ stop_words.discard("while")
 stop_words.discard("not")
 stop_words.discard("if")
 
-#%%
 # NOTE: VERY IMPORTANT: load the model file
 model = Doc2Vec.load("d2v.model")
+
+#%%
 
 # function to be used on all questions before processing
 def preProcess(sentence):
@@ -32,8 +33,18 @@ def preProcess(sentence):
     words = [w for w in tokens if ((w not in stop_words) and (w.isalpha()))]
     return words
 
+# prepare a question by returning a tuple with the question and it's infered vector
 def prepare4DB(question):
     return (question, model.infer_vector( preProcess(question), epochs=500))
+
+# gets the similarity score between 2 questions
+def get_similarity_score(user_q, db_q):
+    v1 = model.infer_vector( preProcess(user_q), epochs=500)
+
+    v2 = model.infer_vector( preProcess(db_q), epochs=500)
+    v2 = np.array(v2)
+
+    return model.wv.cosine_similarities(v1, [v2])[0]
 
 # NOTE: The below n_most_similar function is faster than the n_most_similar2 function that comes after
 # user_q - inputed question (*string) asked by user
